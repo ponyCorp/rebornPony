@@ -19,5 +19,13 @@ func (app *App) Run() error {
 		return err
 	}
 	fmt.Println(conf)
+	driver, err := repository.CreateDriver(conf.BdType)
+	if err != nil {
+		return err
+	}
+	err = driver.Connect(conf.BdPath, conf.DBName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
