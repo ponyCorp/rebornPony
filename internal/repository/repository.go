@@ -5,6 +5,7 @@ import (
 
 	"github.com/ponyCorp/rebornPony/internal/models"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
+	sqllibChat "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chat"
 	sqllibUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/user"
 )
 
@@ -12,9 +13,13 @@ type User interface {
 	GetUserByID(id string) (models.User, error)
 }
 
+type Chat interface {
+	GetChatByID(id string) (models.Chat, error)
+}
 type Repository struct {
 	driverType string
 	User       User
+	Chat       Chat
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
@@ -31,9 +36,14 @@ func NewRepository(driver iDb) (*Repository, error) {
 		if err != nil {
 			return &Repository{}, err
 		}
+		ChatScheme, err := sqllibChat.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
 		return &Repository{
 			driverType: dr.DriverType(),
 			User:       userScheme,
+			Chat:       ChatScheme,
 		}, nil
 	}
 
