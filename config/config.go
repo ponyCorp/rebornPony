@@ -39,6 +39,7 @@ func envLookup(envName string, defaultValue string) string {
 
 }
 func loadEnvsFromFile(confPath string) error {
+	fmc.Printfln("loadEnvsFromFile: %s", confPath)
 	if confPath == "" {
 		return nil
 	}

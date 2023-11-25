@@ -12,13 +12,16 @@ type App struct {
 }
 
 func NewApp(confPath string) *App {
-	return &App{}
+	return &App{
+		confPath: confPath,
+	}
 }
 func (app *App) Run() error {
 	conf, err := config.InitConfig(app.confPath)
 	if err != nil {
 		return err
 	}
+	//!warn todo remove
 	fmt.Println(conf)
 	driver, err := repository.CreateDriver(conf.BdType)
 	if err != nil {
