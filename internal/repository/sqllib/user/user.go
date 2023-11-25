@@ -9,11 +9,12 @@ type User struct {
 	driver *sqllib.ISql
 }
 type UserScheme struct {
-	UserID        int64
-	ChatID        int64
-	Name          string
-	Warn          int
-	MutesFromWarn int
+	ID            int64  `gorm:"column:id"`
+	UserID        int64  `gorm:"column:user_id"`
+	ChatID        int64  `gorm:"column:chat_id"`
+	Name          string `gorm:"column:name"`
+	Warn          int    `gorm:"column:warn"`
+	MutesFromWarn int    `gorm:"column:mutes_from_warn"`
 }
 
 func Init(driver *sqllib.ISql) (*User, error) {
