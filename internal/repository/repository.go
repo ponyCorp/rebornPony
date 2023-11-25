@@ -3,13 +3,13 @@ package repository
 import (
 	"fmt"
 
-	"github.com/ponyCorp/rebornPony/internal/repository/mongolib/user"
+	"github.com/ponyCorp/rebornPony/internal/models"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
+	sqllibUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/user"
 )
 
 type User interface {
-	GetName() string
-	GetUserByID(id string) (*user.User, error)
+	GetUserByID(id string) (models.User, error)
 }
 
 type Repository struct {
@@ -27,9 +27,13 @@ func NewRepository(driver iDb) (*Repository, error) {
 	// 		User:       user.Init(dr),
 	// 	}
 	case *sqllib.ISql:
-
+		userScheme, err := sqllibUser.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
 		return &Repository{
 			driverType: dr.DriverType(),
+			User:       userScheme,
 		}, nil
 	}
 

@@ -10,7 +10,7 @@ import (
 )
 
 type ISql struct {
-	db     *gorm.DB
+	Driver *gorm.DB
 	dbType string
 }
 
@@ -41,7 +41,7 @@ func (c *ISql) Connect(path string, dbName string) error {
 	if err != nil {
 		return err
 	}
-	c.db = db
+	c.Driver = db
 	return nil
 }
 func (c *ISql) DriverType() string {
@@ -53,7 +53,7 @@ func (c *ISql) GetDriverImplementation() interface{} {
 
 func (c *ISql) Disconnect() error {
 	fmt.Println("sql disconnect")
-	instanceDB, err := c.db.DB()
+	instanceDB, err := c.Driver.DB()
 	if err != nil {
 		return err
 	}
