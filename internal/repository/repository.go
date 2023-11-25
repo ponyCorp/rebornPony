@@ -18,15 +18,15 @@ type Repository struct {
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
-	fmt.Printf("driver type: %T\n", driver)
-
+	fmt.Printf("driver type: %T\n", driver.GetDriverImplementation())
+	//do not forget pointer to db
 	switch dr := driver.GetDriverImplementation().(type) {
 	// case *mongolib.IMongo:
 	// 	return &Repository{
 	// 		driverType: dr.DriverType(),
 	// 		User:       user.Init(dr),
 	// 	}
-	case sqllib.ISql:
+	case *sqllib.ISql:
 
 		return &Repository{
 			driverType: dr.DriverType(),
