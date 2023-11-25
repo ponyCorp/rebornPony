@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ponyCorp/rebornPony/config"
+	"github.com/ponyCorp/rebornPony/internal/repository"
 )
 
 type App struct {
@@ -27,5 +28,10 @@ func (app *App) Run() error {
 	if err != nil {
 		return err
 	}
+	rep, err := repository.NewRepository(driver)
+	if err != nil {
+		return err
+	}
+	_ = rep
 	return nil
 }
