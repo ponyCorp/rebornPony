@@ -20,3 +20,5 @@ config.conf
 .db
 ./ponyBot
 ponyBot
+*.db
+/storage
