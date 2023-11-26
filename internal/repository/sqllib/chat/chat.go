@@ -15,7 +15,7 @@ type ChatScheme struct {
 	ChatID         int64    `gorm:"column:chat_id"`
 	WelcomeMessage string   `gorm:"column:welcome_message"`
 	RulesMessage   string   `gorm:"column:rules_message"`
-	KnownUsers     []string `gorm:"column:known_users"`
+	KnownUsers     []string `gorm:"column:known_users;type:text[]" `
 	// service
 	DeleteServiceMessage        bool  `gorm:"column:delete_service_message"`
 	DeleteServiceMessageTimeout int64 `gorm:"column:delete_service_message_timeout"`
