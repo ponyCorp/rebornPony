@@ -14,9 +14,9 @@ import (
 )
 
 type KnownUser interface {
-	AddKnownUser(knownUser models.KnownUser) error
+	AddKnownUser(knownUser models.KnownUser) (models.KnownUser, error)
 	RemoveKnownUser(knownUser models.KnownUser) error
-	GetKnownUser(userId int64) models.KnownUser
+	GetKnownUser(userId int64, chatId int64) (models.KnownUser, error)
 }
 type Warn interface {
 	IncreaseWarn(userId int64, chatId int64) error
