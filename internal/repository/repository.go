@@ -37,15 +37,18 @@ type MuteHistory interface {
 }
 
 type Chat interface {
-	GetChatByID(id string) (models.Chat, error)
+	GetChatByChatID(id int64) (models.Chat, error)
 	GetDisabledChats() []models.Chat
 	GetChats() []models.Chat
 	GetChildrenChats(parentChatID string) []models.Chat
-	UnregisterChat(chat models.Chat)
-	RegisterChat(chat models.Chat)
-	UpdateChat(chat models.Chat)
-	AddChildrenChat(parentChatID string, childrenChatID string)
-	SetParentChat(parentChatID string, childrenChatID string)
+	//SetUnregisterChat(chatId int64) //deprecated
+	//SetRegisterChat(chatId int64)//deprecated
+	EnableEvents(chatId int64) error
+	DisableEvents(chatId int64) error
+	UpdateChatRules(chatId int64, rulesMessage string) error
+	UpdateChatWelcome(chatId int64, welcomeMessage string) error
+	AddChildrenChat(parentChatID string, childrenChatID string) error
+	SetParentChat(parentChatID string, childrenChatID string) error
 }
 type Repository struct {
 	driverType  string
