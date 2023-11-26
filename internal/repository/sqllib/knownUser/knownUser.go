@@ -1,11 +1,11 @@
-package user
+package knownuser
 
 import (
 	"github.com/ponyCorp/rebornPony/internal/models"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
 )
 
-type User struct {
+type KnownUser struct {
 	driver *sqllib.ISql
 }
 type UserScheme struct {
@@ -17,15 +17,15 @@ type UserScheme struct {
 	MutesFromWarn int    `gorm:"column:mutes_from_warn"`
 }
 
-func Init(driver *sqllib.ISql) (*User, error) {
+func Init(driver *sqllib.ISql) (*KnownUser, error) {
 	driver.Driver.AutoMigrate(&UserScheme{})
-	return &User{
+	return &KnownUser{
 		driver: driver,
 	}, nil
 }
 
 // GetUserByID
-func (u *User) GetUserByID(userID string) (models.User, error) {
+func (u *KnownUser) GetUserByID(userID string) (models.User, error) {
 	var user UserScheme
 	if result := u.driver.Driver.Where("user_id = ?", userID).First(&user); result.Error != nil {
 

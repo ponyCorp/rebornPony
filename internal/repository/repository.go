@@ -6,11 +6,17 @@ import (
 	"github.com/ponyCorp/rebornPony/internal/models"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
 	sqllibChat "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chat"
-	sqllibUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/user"
+	sqllibKnownUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/knownUser"
+	sqllibMuteHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/muteHistory"
+
+	sqllibWarn "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warn"
+	sqllibWarnHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warnHistory"
 )
 
-type User interface {
-	GetUserByID(id string) (models.User, error)
+type KnownUser interface {
+	AddKnownUser(knownUser models.KnownUser) error
+	RemoveKnownUser(knownUser models.KnownUser) error
+	GetKnownUser(userId int64) models.KnownUser
 }
 type Warn interface {
 	IncreaseWarn(userId int64, chatId int64) error
@@ -19,16 +25,17 @@ type Warn interface {
 	GetWarnByChatId(userId int64, chatId int64) int
 	GetWarns(userId int64) []models.Warn
 }
-type MuteHistory interface {
-	AddUserMuteHistory(mute models.MuteHistory) error
-	GetUserMuteHistory(userId int64) []models.MuteHistory
-	GetUserMuteHistoryByChatId(userId int64, chatId int64) []models.MuteHistory
-}
 type WarnHistory interface {
 	AddUserWarnHistory(warn models.WarnHistory) error
 	GetUserWarnHistory(userId int64) []models.WarnHistory
 	GetUserWarnHistoryByChatId(userId int64, chatId int64) []models.WarnHistory
 }
+type MuteHistory interface {
+	AddUserMuteHistory(mute models.MuteHistory) error
+	GetUserMuteHistory(userId int64) []models.MuteHistory
+	GetUserMuteHistoryByChatId(userId int64, chatId int64) []models.MuteHistory
+}
+
 type Chat interface {
 	GetChatByID(id string) (models.Chat, error)
 	GetDisabledChats() []models.Chat
@@ -41,9 +48,12 @@ type Chat interface {
 	SetParentChat(parentChatID string, childrenChatID string)
 }
 type Repository struct {
-	driverType string
-	User       User
-	Chat       Chat
+	driverType  string
+	Chat        Chat
+	Warn        Warn
+	WarnHistory WarnHistory
+	MuteHistory MuteHistory
+	KnownUser   KnownUser
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
@@ -56,7 +66,7 @@ func NewRepository(driver iDb) (*Repository, error) {
 	// 		User:       user.Init(dr),
 	// 	}
 	case *sqllib.ISql:
-		userScheme, err := sqllibUser.Init(dr)
+		knownUserScheme, err := sqllibKnownUser.Init(dr)
 		if err != nil {
 			return &Repository{}, err
 		}
@@ -64,10 +74,26 @@ func NewRepository(driver iDb) (*Repository, error) {
 		if err != nil {
 			return &Repository{}, err
 		}
+		WarnScheme, err := sqllibWarn.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
+		WarnHistoryScheme, err := sqllibWarnHistory.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
+		MuteHistoryScheme, err := sqllibMuteHistory.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
+
 		return &Repository{
-			driverType: dr.DriverType(),
-			User:       userScheme,
-			Chat:       ChatScheme,
+			driverType:  dr.DriverType(),
+			KnownUser:   knownUserScheme,
+			Chat:        ChatScheme,
+			Warn:        WarnScheme,
+			WarnHistory: WarnHistoryScheme,
+			MuteHistory: MuteHistoryScheme,
 		}, nil
 	}
 
