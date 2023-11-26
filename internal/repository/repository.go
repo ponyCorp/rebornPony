@@ -19,11 +19,11 @@ type KnownUser interface {
 	GetKnownUser(userId int64, chatId int64) (models.KnownUser, error)
 }
 type Warn interface {
-	IncreaseWarn(userId int64, chatId int64) error
-	DecreaseWarn(userId int64, chatId int64) error
+	IncreaseWarn(userId int64, chatId int64) (int, error)
+	DecreaseWarn(userId int64, chatId int64) (int, error)
 	ResetWarn(userId int64, chatId int64) error
-	GetWarnByChatId(userId int64, chatId int64) int
-	GetWarns(userId int64) []models.Warn
+	GetWarnedUserByChatId(userId int64, chatId int64) (models.Warn, error)
+	GetUserWarnsFromAllChats(userId int64) ([]models.Warn, error)
 }
 type WarnHistory interface {
 	AddUserWarnHistory(warn models.WarnHistory) error

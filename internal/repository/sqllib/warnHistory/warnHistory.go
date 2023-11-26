@@ -1,6 +1,9 @@
 package warnhistory
 
-import "github.com/ponyCorp/rebornPony/internal/repository/sqllib"
+import (
+	"github.com/ponyCorp/rebornPony/internal/models"
+	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
+)
 
 type WarnHistoryScheme struct {
 	UserId       int64  `gorm:"column:user_id"`
@@ -21,4 +24,56 @@ func Init(driver *sqllib.ISql) (*WarnHistory, error) {
 	return &WarnHistory{
 		driver: driver,
 	}, nil
+}
+
+func (u *WarnHistory) AddUserWarnHistory(warn models.WarnHistory) error {
+	return u.driver.Driver.Create(&WarnHistoryScheme{
+		UserId:       warn.UserId,
+		ChatId:       warn.ChatId,
+		AdminId:      warn.AdminId,
+		Date:         warn.Date,
+		Reason:       warn.Reason,
+		SourceMsgId:  warn.SourceMsgId,
+		WarningMsgId: warn.WarningMsgId,
+	}).Error
+}
+
+func (u *WarnHistory) GetUserWarnHistory(userId int64) []models.WarnHistory {
+	var warns []WarnHistoryScheme
+	if err := u.driver.Driver.Where("user_id = ?", userId).Find(&warns).Error; err != nil {
+		return nil
+	}
+	var result []models.WarnHistory
+	for _, warn := range warns {
+		result = append(result, models.WarnHistory{
+			UserId:       warn.UserId,
+			ChatId:       warn.ChatId,
+			AdminId:      warn.AdminId,
+			Date:         warn.Date,
+			Reason:       warn.Reason,
+			SourceMsgId:  warn.SourceMsgId,
+			WarningMsgId: warn.WarningMsgId,
+		})
+	}
+	return result
+}
+
+func (u *WarnHistory) GetUserWarnHistoryByChatId(userId int64, chatId int64) []models.WarnHistory {
+	var warns []WarnHistoryScheme
+	if err := u.driver.Driver.Where("user_id = ?", userId).Where("chat_id = ?", chatId).Find(&warns).Error; err != nil {
+		return nil
+	}
+	var result []models.WarnHistory
+	for _, warn := range warns {
+		result = append(result, models.WarnHistory{
+			UserId:       warn.UserId,
+			ChatId:       warn.ChatId,
+			AdminId:      warn.AdminId,
+			Date:         warn.Date,
+			Reason:       warn.Reason,
+			SourceMsgId:  warn.SourceMsgId,
+			WarningMsgId: warn.WarningMsgId,
+		})
+	}
+	return result
 }
