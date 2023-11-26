@@ -32,8 +32,8 @@ type WarnHistory interface {
 }
 type MuteHistory interface {
 	AddUserMuteHistory(mute models.MuteHistory) error
-	GetUserMuteHistory(userId int64) []models.MuteHistory
-	GetUserMuteHistoryByChatId(userId int64, chatId int64) []models.MuteHistory
+	GetUserMuteHistory(userId int64) ([]models.MuteHistory, error)
+	GetUserMuteHistoryByChatId(userId int64, chatId int64) ([]models.MuteHistory, error)
 }
 
 type Chat interface {
