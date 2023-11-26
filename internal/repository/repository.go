@@ -12,9 +12,33 @@ import (
 type User interface {
 	GetUserByID(id string) (models.User, error)
 }
-
+type Warn interface {
+	IncreaseWarn(userId int64, chatId int64) error
+	DecreaseWarn(userId int64, chatId int64) error
+	ResetWarn(userId int64, chatId int64) error
+	GetWarnByChatId(userId int64, chatId int64) int
+	GetWarns(userId int64) []models.Warn
+}
+type MuteHistory interface {
+	AddUserMuteHistory(mute models.MuteHistory) error
+	GetUserMuteHistory(userId int64) []models.MuteHistory
+	GetUserMuteHistoryByChatId(userId int64, chatId int64) []models.MuteHistory
+}
+type WarnHistory interface {
+	AddUserWarnHistory(warn models.WarnHistory) error
+	GetUserWarnHistory(userId int64) []models.WarnHistory
+	GetUserWarnHistoryByChatId(userId int64, chatId int64) []models.WarnHistory
+}
 type Chat interface {
 	GetChatByID(id string) (models.Chat, error)
+	GetDisabledChats() []models.Chat
+	GetChats() []models.Chat
+	GetChildrenChats(parentChatID string) []models.Chat
+	UnregisterChat(chat models.Chat)
+	RegisterChat(chat models.Chat)
+	UpdateChat(chat models.Chat)
+	AddChildrenChat(parentChatID string, childrenChatID string)
+	SetParentChat(parentChatID string, childrenChatID string)
 }
 type Repository struct {
 	driverType string
