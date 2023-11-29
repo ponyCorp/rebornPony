@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/ponyCorp/rebornPony/internal"
 )
@@ -20,6 +21,7 @@ func main() {
 
 	err := app.Run()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error app run: %+v\n", err)
+		os.Exit(1)
 	}
 }
