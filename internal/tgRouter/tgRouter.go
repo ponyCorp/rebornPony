@@ -16,27 +16,27 @@ type middlewareList struct {
 	EventType string
 	Func      middlware
 }
-type router struct {
+type Router struct {
 	Routs       map[string]rout
 	Middlewares []middlewareList
 }
 
-func NewRouter() router {
-	return router{
+func NewRouter() Router {
+	return Router{
 		Routs:       make(map[string]rout),
 		Middlewares: []middlewareList{},
 	}
 }
-func (b *router) Handle(rout string, f rout) {
+func (b *Router) Handle(rout string, f rout) {
 	b.Routs[rout] = f
 }
-func (b *router) Middleware(eventType string, f middlware) {
+func (b *Router) Middleware(eventType string, f middlware) {
 	b.Middlewares = append(b.Middlewares, middlewareList{
 		EventType: eventType,
 		Func:      f,
 	})
 }
-func (b *router) middlewareIsExist(middle string) bool {
+func (b *Router) middlewareIsExist(middle string) bool {
 	for _, f := range b.Middlewares {
 		if f.EventType == middle {
 			return true
@@ -44,7 +44,7 @@ func (b *router) middlewareIsExist(middle string) bool {
 	}
 	return false
 }
-func (b *router) getMiddlewaresForFunc(localFuncName string) []middlewareList {
+func (b *Router) getMiddlewaresForFunc(localFuncName string) []middlewareList {
 	var m []middlewareList
 	for _, md := range b.Middlewares {
 		if md.EventType == localFuncName || md.EventType == eventtypes.AllUpdateTypes {
@@ -53,7 +53,7 @@ func (b *router) getMiddlewaresForFunc(localFuncName string) []middlewareList {
 	}
 	return m
 }
-func (b *router) getTypeUpdate(upd *tgbotapi.Update) string {
+func (b *Router) getTypeUpdate(upd *tgbotapi.Update) string {
 	return eventtypes.Undefined
 }
 func runMiddleware(m middlewareList, upd *tgbotapi.Update, localFuncName string) (b bool, returnErr error) {
@@ -67,7 +67,7 @@ func runMiddleware(m middlewareList, upd *tgbotapi.Update, localFuncName string)
 	ok, err := m.Func(upd, localFuncName)
 	return ok, err
 }
-func (b *router) rangeAllMiddlewares(localFuncName string, upd *tgbotapi.Update) (bool, error) {
+func (b *Router) rangeAllMiddlewares(localFuncName string, upd *tgbotapi.Update) (bool, error) {
 	middles := b.getMiddlewaresForFunc(localFuncName)
 	for _, m := range middles {
 		ok, err := runMiddleware(m, upd, localFuncName)
@@ -80,7 +80,7 @@ func (b *router) rangeAllMiddlewares(localFuncName string, upd *tgbotapi.Update)
 	}
 	return true, nil
 }
-func (b *router) stageMiddlewares(funcName string, update *tgbotapi.Update) (returnBool bool, returnErr error, panicErr error) {
+func (b *Router) stageMiddlewares(funcName string, update *tgbotapi.Update) (returnBool bool, returnErr error, panicErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			returnErr = r.(error)
@@ -92,7 +92,7 @@ func (b *router) stageMiddlewares(funcName string, update *tgbotapi.Update) (ret
 	return res, rerr, nil
 }
 
-func (b *router) stageRout(funcName string, update *tgbotapi.Update) (returnErr error, panicErr error) {
+func (b *Router) stageRout(funcName string, update *tgbotapi.Update) (returnErr error, panicErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			returnErr = r.(error)
@@ -106,7 +106,7 @@ func (b *router) stageRout(funcName string, update *tgbotapi.Update) (returnErr 
 	e := f(update)
 	return e, nil
 }
-func (b *router) Run(upd *chan *tgbotapi.Update) error {
+func (b *Router) Run(upd *chan *tgbotapi.Update) error {
 	//add default middleware
 	if !b.middlewareIsExist(eventtypes.Undefined) {
 		b.Middleware(eventtypes.Undefined, func(upd *tgbotapi.Update, uType string) (bool, error) {
