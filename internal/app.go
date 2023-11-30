@@ -10,6 +10,7 @@ import (
 	"github.com/ponyCorp/rebornPony/config"
 	"github.com/ponyCorp/rebornPony/internal/repository"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
+	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	tgbot "github.com/ponyCorp/rebornPony/internal/services/tgBot"
 	tgrouter "github.com/ponyCorp/rebornPony/internal/tgRouter"
 )
@@ -52,9 +53,10 @@ func (app *App) Run() error {
 	if err != nil {
 		return errors.Wrap(err, "startTgBot")
 	}
+	sender := sender.NewSender(tgBot.Bot)
 	tgRouter := tgrouter.NewRouter()
 	switcher := eventchatswitcher.New(rep.Chat)
-	tgRouter.Mount(rep, switcher, tgBot.GetBotUsername())
+	tgRouter.Mount(rep, switcher, sender, tgBot.GetBotUsername())
 	fmt.Println("mounted")
 	for range exit {
 		break
