@@ -5,14 +5,16 @@ import (
 	"github.com/mallvielfrass/fmc"
 	"github.com/ponyCorp/rebornPony/internal/repository"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
+	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
 	"github.com/ponyCorp/rebornPony/utils/command"
 )
 
-func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, botName string) {
+func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, sender *sender.Sender, botName string) {
 	cmdParser := command.NewCommandParser(botName)
-	cmdRouter := cmdhandler.NewCmdHandler(rep)
+	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
+	cmdRouter.Mount()
 	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
 		isCommand, cmd := cmdParser.ParseCommand(update.Message.Text)
 		if !isCommand {
