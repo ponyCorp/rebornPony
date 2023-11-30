@@ -5,10 +5,22 @@ import (
 	"github.com/mallvielfrass/fmc"
 	"github.com/ponyCorp/rebornPony/internal/repository"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
+	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
+	"github.com/ponyCorp/rebornPony/utils/command"
 )
 
-func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher) {
+func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, botName string) {
+	cmdParser := command.NewCommandParser(botName)
+	cmdRouter := cmdhandler.NewCmdHandler(rep)
+	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
+		isCommand, cmd := cmdParser.ParseCommand(update.Message.Text)
+		if !isCommand {
+			return nil
+		}
+		cmdRouter.Route(update, cmd.Cmd, cmd.Arg)
+		return nil
+	})
 	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, uType string) (bool, error) {
 		fmc.Printfln("#fbtAllUpdateTypes middleware> #bbt[%+v]", upd)
 		return true, nil

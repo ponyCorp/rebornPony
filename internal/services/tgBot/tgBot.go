@@ -67,3 +67,6 @@ func (t *tgBot) Start() error {
 func (t *tgBot) Stop() {
 	t.stop <- true
 }
+func (t *tgBot) GetBotUsername() string {
+	return t.Bot.Self.UserName
+}
