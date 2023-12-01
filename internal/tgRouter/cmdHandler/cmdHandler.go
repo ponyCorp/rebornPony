@@ -7,16 +7,19 @@ import (
 )
 
 type handleFunc func(update *tgbotapi.Update, cmd, arg string)
+
 type rout struct {
 	handleFunc  handleFunc
 	route       string
 	description string
+	groupName   string
 }
 type CmdHandler struct {
 	mapRouter map[string]rout
 	rep       *repository.Repository
 	rules     *rules
 	sender    *sender.Sender
+	// cmdParser *command.CommandParser
 }
 
 func NewCmdHandler(rep *repository.Repository, sender *sender.Sender) *CmdHandler {
@@ -28,15 +31,21 @@ func NewCmdHandler(rep *repository.Repository, sender *sender.Sender) *CmdHandle
 		rep:       rep,
 		rules:     rules,
 		sender:    sender,
+		//	cmdParser: command.NewCommandParser(botName),
 	}
 }
-func (h *CmdHandler) Handle(route string, description string, f handleFunc) {
+func (h *CmdHandler) handle(route string, description string, f handleFunc, group string) {
+
 	h.rules.addRoute(route, description)
 	h.mapRouter[route] = rout{
 		handleFunc:  f,
 		route:       route,
 		description: description,
+		groupName:   group,
 	}
+}
+func (h *CmdHandler) Handle(route string, description string, f handleFunc) {
+	h.handle(route, description, f, "")
 }
 func (h *CmdHandler) HandleMany(routes []string, description string, f handleFunc) {
 	for _, route := range routes {
