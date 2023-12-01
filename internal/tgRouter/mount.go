@@ -33,15 +33,16 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		if err != nil {
 			return false, err
 		}
-
-		if isDisabled {
-			_, args := r.cmdParser.IsCommandWithArgs(upd)
-			if args.Cmd == "enable" {
-				return true, nil
-			}
-			return false, nil
+		if !isDisabled {
+			return true, nil
 		}
-		return true, nil
+
+		_, args := r.cmdParser.IsCommandWithArgs(upd)
+		if args.Cmd == "enable" {
+			return true, nil
+		}
+		return false, nil
+
 	})
 }
 func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender) *cmdhandler.CmdHandler {
