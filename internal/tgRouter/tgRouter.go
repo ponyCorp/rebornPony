@@ -8,6 +8,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/mallvielfrass/fmc"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
+	"github.com/ponyCorp/rebornPony/utils/command"
 )
 
 type rout func(upd *tgbotapi.Update) error
@@ -19,12 +20,14 @@ type middlewareList struct {
 type Router struct {
 	Routs       map[string]rout
 	Middlewares []middlewareList
+	cmdParser   *command.CommandParser
 }
 
-func NewRouter() Router {
+func NewRouter(botName string) Router {
 	return Router{
 		Routs:       make(map[string]rout),
 		Middlewares: []middlewareList{},
+		cmdParser:   command.NewCommandParser(botName),
 	}
 }
 func (b *Router) Handle(rout string, f rout) {
@@ -54,6 +57,34 @@ func (b *Router) getMiddlewaresForFunc(localFuncName string) []middlewareList {
 	return m
 }
 func (b *Router) getTypeUpdate(upd *tgbotapi.Update) string {
+
+	if upd.Message != nil {
+		if upd.Message.NewChatMembers != nil {
+			return eventtypes.MemberJoinInChat
+		}
+		if upd.Message.LeftChatMember != nil {
+			return eventtypes.LeaveChatMember
+		}
+		if upd.Message.ForwardFrom != nil {
+			return eventtypes.Message
+		}
+
+		if b.cmdParser.IsCommand(upd) {
+			return eventtypes.CommandMessage
+		}
+
+		if upd.Message.ReplyToMessage != nil {
+			if _, ok := b.Routs[eventtypes.ReplyMessage]; ok {
+				return eventtypes.ReplyMessage
+			}
+		}
+		return eventtypes.Message
+	}
+
+	if upd.CallbackQuery != nil {
+		return eventtypes.CallbackQuery
+	}
+
 	return eventtypes.Undefined
 }
 func runMiddleware(m middlewareList, upd *tgbotapi.Update, localFuncName string) (b bool, returnErr error) {
