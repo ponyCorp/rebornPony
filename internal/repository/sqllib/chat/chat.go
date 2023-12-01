@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"fmt"
+
 	"github.com/ponyCorp/rebornPony/internal/models"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
 )
@@ -161,4 +163,39 @@ func (u *Chat) AddChildrenChat(parentChatID string, childrenChatID string) error
 func (u *Chat) SetParentChat(parentChatID string, childrenChatID string) error {
 
 	return u.driver.Driver.Model(&ChatScheme{}).Where("chat_id = ?", childrenChatID).Update("parent_chat", parentChatID).Error
+}
+
+// // GetOrCreateChatByChatID(id int64) (models.Chat, error)
+//
+//	func (u *Chat) GetOrCreateChatByChatID(id int64) (models.Chat, error) {
+//		existChat, err := u.GetChatByChatID(id)
+//		if err != nil {
+//			if err.Error() != "record not found" {
+//				return models.Chat{}, err
+//			}
+//			return u.
+//		}
+//	}
+//
+// CreateChat(chat models.Chat) (models.Chat, error)
+func (u *Chat) CreateChat(chat models.Chat) (models.Chat, error) {
+	existChat, err := u.GetChatByChatID(chat.ChatID)
+	if err != nil && err.Error() != "record not found" {
+		return models.Chat{}, err
+	}
+	if existChat.ChatID == chat.ChatID {
+		return existChat, fmt.Errorf("record already exist")
+	}
+	if err := u.driver.Driver.Create(&ChatScheme{
+		ID:             chat.ID,
+		ChildrenChats:  chat.ChildrenChats,
+		ParentChat:     chat.ParentChat,
+		ChatID:         chat.ChatID,
+		WelcomeMessage: chat.WelcomeMessage,
+		RulesMessage:   chat.RulesMessage,
+	}).Error; err != nil {
+		return models.Chat{}, err
+	}
+	return chat, nil
+
 }

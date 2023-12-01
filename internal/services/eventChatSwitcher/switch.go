@@ -8,6 +8,7 @@ type EventChatSwitcher struct {
 }
 type Adapter interface {
 	GetChatByChatID(id int64) (models.Chat, error)
+	CreateChat(chat models.Chat) (models.Chat, error)
 }
 
 func New(adapter Adapter) *EventChatSwitcher {
@@ -22,8 +23,8 @@ func (e *EventChatSwitcher) ChatIsDisabled(chatId int64) (bool, error) {
 	if ok {
 		return val, nil
 	}
-	chat, err := e.adapter.GetChatByChatID(chatId)
-	if err != nil {
+	chat, err := e.adapter.CreateChat(models.Chat{ChatID: chatId})
+	if err != nil && err.Error() != "record already exist" {
 		return false, err
 	}
 	e.chats[chatId] = chat.IgnoreEvents

@@ -37,6 +37,7 @@ type MuteHistory interface {
 }
 
 type Chat interface {
+	CreateChat(chat models.Chat) (models.Chat, error)
 	GetChatByChatID(id int64) (models.Chat, error)
 	GetDisabledChats() []models.Chat
 	GetChats() []models.Chat
