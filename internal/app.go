@@ -58,7 +58,10 @@ func (app *App) Run() error {
 	switcher := eventchatswitcher.New(rep.Chat)
 	tgRouter.Mount(rep, switcher, sender, tgBot.GetBotUsername())
 	fmt.Println("mounted")
+
+	go tgRouter.Run(&tgBot.Upd)
 	for range exit {
+		fmt.Println("exit from signal")
 		break
 	}
 	tgBot.Stop()

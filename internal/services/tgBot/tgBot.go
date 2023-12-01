@@ -14,7 +14,7 @@ type tgBot struct {
 	rep   *repository.Repository
 	token string
 	Bot   *tgbotapi.BotAPI
-	Upd   chan tgbotapi.Update
+	Upd   chan *tgbotapi.Update
 	stop  chan bool
 }
 
@@ -23,7 +23,7 @@ func NewTgBot(token string, rep *repository.Repository) *tgBot {
 	return &tgBot{
 		rep:   rep,
 		token: token,
-		Upd:   make(chan tgbotapi.Update),
+		Upd:   make(chan *tgbotapi.Update),
 		stop:  make(chan bool),
 	}
 }
@@ -53,8 +53,10 @@ func (t *tgBot) Start() error {
 		for {
 			select {
 			case upd := <-updates:
-				fmt.Printf("tgBot: Update: %+v\n", upd)
-				t.Upd <- upd
+				update := upd
+				//fmt.Printf("tgBot: Update: %+v\n", upd)
+				t.Upd <- &update
+			//	fmt.Printf("tgBot: Update sended\n")
 			case <-t.stop:
 				fmt.Println("tgBot: Stop receiving updates")
 				bot.StopReceivingUpdates()
