@@ -3,6 +3,8 @@ package command
 import (
 	"regexp"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type CommandParser struct {
@@ -39,6 +41,16 @@ func NewCommandParser(botName string) *CommandParser {
 		botName:      botName,
 		reSpecSymbol: regexp.MustCompile(`^([!/])[A-zА-я0-9]+$`),
 	}
+}
+func (h *CommandParser) IsCommand(upd *tgbotapi.Update) bool {
+	if upd == nil || upd.Message == nil {
+		return false
+	}
+	if upd.Message.IsCommand() {
+		return true
+	}
+	isCmd, _ := h.ParseCommand(upd.Message.Text)
+	return isCmd
 }
 
 // ParseCommand(text string)(isCommand bool, command string, args string)
