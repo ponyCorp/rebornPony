@@ -1,6 +1,8 @@
 package tgrouter
 
 import (
+	"fmt"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/mallvielfrass/fmc"
 	"github.com/ponyCorp/rebornPony/internal/repository"
@@ -13,8 +15,7 @@ import (
 
 func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, sender *sender.Sender, botName string) {
 	cmdParser := command.NewCommandParser(botName)
-	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
-	cmdRouter.Mount()
+	cmdRouter := r.cmdRouts(rep, sender)
 	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
 		isCommand, cmd := cmdParser.ParseCommand(update.Message.Text)
 		if !isCommand {
@@ -42,4 +43,19 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		}
 		return true, nil
 	})
+}
+func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender) *cmdhandler.CmdHandler {
+	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
+	cmdRouter.Handle("help", "help", cmdRouter.Help)
+	adminOnlyGroup := cmdRouter.NewGroup("admin")
+	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
+		fmc.Printfln("#fbtAdminOnly middleware> #bbt[%+v]", update)
+		return true, nil
+	})
+	adminOnlyGroup.Handle("enable", "enable", func(update *tgbotapi.Update, cmd, arg string) {
+		fmt.Println("enable")
+		sender.SendMessage(update.Message.Chat.ID, "Chat enabled")
+	})
+
+	return cmdRouter
 }

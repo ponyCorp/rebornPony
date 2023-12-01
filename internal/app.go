@@ -54,7 +54,7 @@ func (app *App) Run() error {
 		return errors.Wrap(err, "startTgBot")
 	}
 	sender := sender.NewSender(tgBot.Bot)
-	tgRouter := tgrouter.NewRouter()
+	tgRouter := tgrouter.NewRouter(tgBot.GetBotUsername())
 	switcher := eventchatswitcher.New(rep.Chat)
 	tgRouter.Mount(rep, switcher, sender, tgBot.GetBotUsername())
 	fmt.Println("mounted")
