@@ -35,10 +35,10 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		}
 
 		if isDisabled {
-			if upd.Message != nil && upd.Message.IsCommand() && upd.Message.Command() == "enable" {
+			_, args := r.cmdParser.IsCommandWithArgs(upd)
+			if args.Cmd == "enable" {
 				return true, nil
 			}
-
 			return false, nil
 		}
 		return true, nil

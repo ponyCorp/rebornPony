@@ -52,6 +52,14 @@ func (h *CommandParser) IsCommand(upd *tgbotapi.Update) bool {
 	isCmd, _ := h.ParseCommand(upd.Message.Text)
 	return isCmd
 }
+func (h *CommandParser) IsCommandWithArgs(upd *tgbotapi.Update) (bool, command) {
+	if upd == nil || upd.Message == nil {
+		return false, command{}
+	}
+
+	isCmd, cmd := h.ParseCommand(upd.Message.Text)
+	return isCmd, cmd
+}
 
 // ParseCommand(text string)(isCommand bool, command string, args string)
 func (c *CommandParser) ParseCommand(msg string) (bool, command) {
