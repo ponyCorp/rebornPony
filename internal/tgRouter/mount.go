@@ -24,11 +24,11 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		cmdRouter.Route(update, cmd.Cmd, cmd.Arg)
 		return nil
 	})
-	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, uType string) (bool, error) {
+	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, event eventtypes.Event) (bool, error) {
 		fmc.Printfln("#fbtAllUpdateTypes middleware> #bbt[%+v]", upd)
 		return true, nil
 	})
-	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, uType string) (bool, error) {
+	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, event eventtypes.Event) (bool, error) {
 		isDisabled, err := switcher.ChatIsDisabled(upd.FromChat().ID)
 		if err != nil {
 			return false, err

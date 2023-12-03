@@ -1,29 +1,35 @@
 package eventtypes
 
+type Event string
+
 const (
 	//custom based
-	Message            = "Message"
-	ReplyMessage       = "ReplyMessage"
-	ReplyToBotText     = "ReplyToBotText"
-	ReplyToBotCallback = "ReplyToBotCallback"
-	CommandMessage     = "CommandMessage"
-	EditedMessage      = "EditedMessage"
-	ChannelPost        = "ChannelPost"
-	MemberJoinInChat   = "MemberJoinInChat"
-	LeaveChatMember    = "LeaveChatMember"
-	Undefined          = "Undefined"
+	Message            Event = "Message"
+	ReplyMessage       Event = "ReplyMessage"
+	ReplyToBotText     Event = "ReplyToBotText"
+	ReplyToBotCallback Event = "ReplyToBotCallback"
+	CommandMessage     Event = "CommandMessage"
+	EditedMessage      Event = "EditedMessage"
+	ChannelPost        Event = "ChannelPost"
+	MemberJoinInChat   Event = "MemberJoinInChat"
+	LeaveChatMember    Event = "LeaveChatMember"
+	Undefined          Event = "Undefined"
 	//for midddlware
-	AllUpdateTypes = "AllUpdateTypes"
+	AllUpdateTypes Event = "AllUpdateTypes"
 	//services
-	EditedChannelPost  = "EditedChannelPost"
-	InlineQuery        = "InlineQuery"
-	ChosenInlineResult = "ChosenInlineResult"
-	CallbackQuery      = "CallbackQuery"
-	ShippingQuery      = "ShippingQuery"
-	PreCheckoutQuery   = "PreCheckoutQuery"
-	Poll               = "Poll"
-	PollAnswer         = "PollAnswer"
-	MyChatMember       = "MyChatMember"
-	ChatMember         = "ChatMember"
-	ChatJoinRequest    = "ChatJoinRequest"
+	EditedChannelPost  Event = "EditedChannelPost"
+	InlineQuery        Event = "InlineQuery"
+	ChosenInlineResult Event = "ChosenInlineResult"
+	CallbackQuery      Event = "CallbackQuery"
+	ShippingQuery      Event = "ShippingQuery"
+	PreCheckoutQuery   Event = "PreCheckoutQuery"
+	Poll               Event = "Poll"
+	PollAnswer         Event = "PollAnswer"
+	MyChatMember       Event = "MyChatMember"
+	ChatMember         Event = "ChatMember"
+	ChatJoinRequest    Event = "ChatJoinRequest"
 )
+
+func (e Event) String() string {
+	return string(e)
+}
