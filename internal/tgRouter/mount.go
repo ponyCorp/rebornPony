@@ -9,6 +9,7 @@ import (
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
+	dynamiccommandservice "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdServices/dynamicCommandService"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
 	"github.com/ponyCorp/rebornPony/utils/command"
 )
@@ -16,6 +17,7 @@ import (
 func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, sender *sender.Sender, botName string) {
 	cmdParser := command.NewCommandParser(botName)
 	cmdRouter := r.cmdRouts(rep, sender)
+
 	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
 		isCommand, cmd := cmdParser.ParseCommand(update.Message.Text)
 		if !isCommand {
@@ -47,7 +49,13 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 }
 func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender) *cmdhandler.CmdHandler {
 	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
+	dynamicService := dynamiccommandservice.NewDynamicCommandService()
 	cmdRouter.Handle("help", "help", cmdRouter.Help)
+	cmdRouter.HadleUndefined(func(update *tgbotapi.Update, cmd, arg string) {
+		//sender.SendMessage(update.Message.Chat.ID, "Unknown command")
+		dynamicService.Handle(update, cmd, arg)
+	})
+
 	adminOnlyGroup := cmdRouter.NewGroup("admin")
 	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
 		fmc.Printfln("#fbtAdminOnly middleware> #bbt[%+v]", update)

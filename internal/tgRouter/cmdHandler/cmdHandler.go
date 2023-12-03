@@ -47,13 +47,23 @@ func (h *CmdHandler) handle(route string, description string, f handleFunc, grou
 func (h *CmdHandler) Handle(route string, description string, f handleFunc) {
 	h.handle(route, description, f, "")
 }
+func (h *CmdHandler) HadleUndefined(f handleFunc) {
+
+	h.handle("undefined", "undefined", f, "")
+}
 func (h *CmdHandler) HandleMany(routes []string, description string, f handleFunc) {
 	for _, route := range routes {
 		h.Handle(route, description, f)
 	}
 }
-func (h *CmdHandler) Route(update *tgbotapi.Update, cmd, arg string) {
+func (h *CmdHandler) Route(update *tgbotapi.Update, cmd, arg string) bool {
 	if rout, ok := h.mapRouter[cmd]; ok {
 		rout.handleFunc(update, cmd, arg)
+		return true
 	}
+	if rout, ok := h.mapRouter["undefined"]; ok {
+		rout.handleFunc(update, cmd, arg)
+		return true
+	}
+	return false
 }
