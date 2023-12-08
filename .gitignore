@@ -22,3 +22,4 @@ config.conf
 ponyBot
 *.db
 /storage
+plan.drawio
