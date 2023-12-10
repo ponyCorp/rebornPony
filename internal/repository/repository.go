@@ -59,6 +59,11 @@ type ChatSensetive interface {
 	GetChatSensetiveWords(chatId int64, sensetiveType sensetivetypes.SensetiveType) models.ChatSensetiveWords
 	GetAllChatSensetiveWords(sensetiveType sensetivetypes.SensetiveType) map[int64][]string
 }
+type ChatAdmin interface {
+	//AddAdmin(chatId int64, userId int64) error
+	//RemoveAdmin(chatId int64, userId int64) error
+	GetAdminInfo(chatId int64, userId int64) (models.Admin, bool, error)
+}
 type Repository struct {
 	driverType    string
 	Chat          Chat
@@ -67,6 +72,7 @@ type Repository struct {
 	MuteHistory   MuteHistory
 	KnownUser     KnownUser
 	ChatSensetive ChatSensetive
+	ChatAdmin     ChatAdmin
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
