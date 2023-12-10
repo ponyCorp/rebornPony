@@ -147,6 +147,7 @@ func (b *Router) Run(upd *chan *tgbotapi.Update) error {
 	}
 	for update := range *upd {
 		funcName := b.getTypeUpdate(update)
+		//fmt.Printf("#fbtUpdate> #bbt[%+v]\n", funcName)
 		//run middlewares
 		ok, err, panics := b.stageMiddlewares(funcName, update)
 		if panics != nil {
