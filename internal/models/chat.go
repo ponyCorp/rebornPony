@@ -1,7 +1,7 @@
 package models
 
 type Chat struct {
-	ID string
+	//ID string
 	//chat info
 	ChatName       string
 	ChatID         int64

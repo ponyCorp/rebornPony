@@ -11,10 +11,10 @@ type Chat struct {
 	driver *sqllib.ISql
 }
 type ChatScheme struct {
-	ID string `gorm:"column:id;primary_key"`
+	//	ID string `gorm:"column:id;primary_key;index"`
 	//chat info
 	ChatName       string   `gorm:"column:chat_name"`
-	ChatID         int64    `gorm:"column:chat_id"`
+	ChatID         int64    `gorm:"column:chat_id;index;unique;primary_key"`
 	WelcomeMessage string   `gorm:"column:welcome_message"`
 	RulesMessage   string   `gorm:"column:rules_message"`
 	KnownUsers     []string `gorm:"column:known_users;type:text[]" `
@@ -51,7 +51,7 @@ func (u *Chat) GetChatByChatID(ChatID int64) (models.Chat, error) {
 	}
 
 	return models.Chat{
-		ID:             Chat.ID,
+		//ID:             Chat.ID,
 		ChildrenChats:  Chat.ChildrenChats,
 		ParentChat:     Chat.ParentChat,
 		ChatID:         Chat.ChatID,
@@ -70,7 +70,7 @@ func (u *Chat) GetDisabledChats() []models.Chat {
 	var res []models.Chat
 	for _, chat := range chats {
 		res = append(res, models.Chat{
-			ID:             chat.ID,
+			//ID:             chat.ID,
 			ChildrenChats:  chat.ChildrenChats,
 			ParentChat:     chat.ParentChat,
 			ChatID:         chat.ChatID,
@@ -91,7 +91,7 @@ func (u *Chat) GetChats() []models.Chat {
 	var res []models.Chat
 	for _, chat := range chats {
 		res = append(res, models.Chat{
-			ID:             chat.ID,
+			//ID:             chat.ID,
 			ChildrenChats:  chat.ChildrenChats,
 			ParentChat:     chat.ParentChat,
 			ChatID:         chat.ChatID,
@@ -112,7 +112,7 @@ func (u *Chat) GetChildrenChats(parentChatID string) []models.Chat {
 	var res []models.Chat
 	for _, chat := range chats {
 		res = append(res, models.Chat{
-			ID:             chat.ID,
+			//ID:             chat.ID,
 			ChildrenChats:  chat.ChildrenChats,
 			ParentChat:     chat.ParentChat,
 			ChatID:         chat.ChatID,
@@ -187,7 +187,7 @@ func (u *Chat) CreateChat(chat models.Chat) (models.Chat, error) {
 		return existChat, fmt.Errorf("record already exist")
 	}
 	if err := u.driver.Driver.Create(&ChatScheme{
-		ID:             chat.ID,
+		//ID:             chat.ID,
 		ChildrenChats:  chat.ChildrenChats,
 		ParentChat:     chat.ParentChat,
 		ChatID:         chat.ChatID,
