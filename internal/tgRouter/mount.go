@@ -5,17 +5,30 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/mallvielfrass/fmc"
+	"github.com/ponyCorp/rebornPony/internal/models/sensetivetypes"
 	"github.com/ponyCorp/rebornPony/internal/repository"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
 	dynamiccommandservice "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdServices/dynamicCommandService"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
+	sensetivetrigger "github.com/ponyCorp/rebornPony/internal/tgRouter/sensetiveTrigger"
 	"github.com/ponyCorp/rebornPony/utils/command"
 )
 
 func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.EventChatSwitcher, sender *sender.Sender, botName string) {
 	cmdParser := command.NewCommandParser(botName)
+	sensWarn := rep.ChatSensetive.GetAllChatSensetiveWords(sensetivetypes.Warn)
+	warnTrigger := sensetivetrigger.New()
+	for chat, v := range sensWarn {
+		warnTrigger.AddWords(chat, v...)
+	}
+
+	sensForbidden := rep.ChatSensetive.GetAllChatSensetiveWords(sensetivetypes.Forbidden)
+	forbiddenTrigger := sensetivetrigger.New()
+	for chat, v := range sensForbidden {
+		forbiddenTrigger.AddWords(chat, v...)
+	}
 	cmdRouter := r.cmdRouts(rep, sender)
 
 	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
@@ -25,6 +38,28 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		}
 		cmdRouter.Route(update, cmd.Cmd, cmd.Arg)
 		return nil
+	})
+	r.Middleware(eventtypes.Message, func(upd *tgbotapi.Update, event eventtypes.Event) (bool, error) {
+		//sensetive warn
+		isSensetiveWarn := warnTrigger.ChatIsSensetive(upd.FromChat().ID)
+		if !isSensetiveWarn {
+			return true, nil
+		}
+		if warnTrigger.MessageContainSensitiveWords(upd.FromChat().ID, upd.Message.Text) {
+			sender.Reply(upd.FromChat().ID, upd.Message.MessageID, "Ваше сообщение содержит нежелательные слова")
+			return false, nil
+		}
+
+		//sensetive forbidden
+		isSensetiveForbidden := forbiddenTrigger.ChatIsSensetive(upd.FromChat().ID)
+		if !isSensetiveForbidden {
+			return true, nil
+		}
+		if forbiddenTrigger.MessageContainSensitiveWords(upd.FromChat().ID, upd.Message.Text) {
+			sender.Reply(upd.FromChat().ID, upd.Message.MessageID, "Ваше сообщение содержит запрещенные слова")
+			return false, nil
+		}
+		return true, nil
 	})
 	r.Middleware(eventtypes.AllUpdateTypes, func(upd *tgbotapi.Update, event eventtypes.Event) (bool, error) {
 		fmc.Printfln("#fbtAllUpdateTypes middleware> #bbt[%+v]", upd)
