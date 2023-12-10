@@ -11,15 +11,15 @@ import (
 type ChatSensetive struct {
 	driver *sqllib.ISql
 }
-type ChatScheme struct {
-	ID            string `gorm:"column:id;primary_key"`
-	ChatID        int64  `gorm:"column:chat_id"`
-	Word          string `gorm:"column:word"`
+type ChatSensetiveScheme struct {
+	//ID            string `gorm:"column:id;primary_key"`
+	ChatID        int64  `gorm:"column:chat_id;index"`
+	Word          string `gorm:"column:word;index"`
 	SensetiveType string `gorm:"column:sensetive_type"`
 }
 
 func Init(driver *sqllib.ISql) (*ChatSensetive, error) {
-	driver.Driver.AutoMigrate(&ChatScheme{})
+	driver.Driver.AutoMigrate(&ChatSensetiveScheme{})
 	return &ChatSensetive{
 		driver: driver,
 	}, nil
@@ -28,7 +28,8 @@ func Init(driver *sqllib.ISql) (*ChatSensetive, error) {
 // AddChatSensetive(chatId int64, sensetiveWord string) error
 func (u *ChatSensetive) AddChatSensetive(chatId int64, sensetiveWord string, sensetiveType sensetivetypes.SensetiveType) error {
 
-	return u.driver.Driver.Model(&ChatScheme{}).Create(&ChatScheme{
+	return u.driver.Driver.Model(&ChatSensetiveScheme{}).Where("chat_id = ? AND word = ? AND sensetive_type = ?", chatId, sensetiveWord, sensetiveType.String()).FirstOrCreate(&ChatSensetiveScheme{
+
 		ChatID:        chatId,
 		Word:          sensetiveWord,
 		SensetiveType: sensetiveType.String(),
@@ -38,13 +39,13 @@ func (u *ChatSensetive) AddChatSensetive(chatId int64, sensetiveWord string, sen
 // RemoveChatSensetive(chatId int64, sensetiveWord string) error
 func (u *ChatSensetive) RemoveChatSensetive(chatId int64, sensetiveWord string, sensetiveType sensetivetypes.SensetiveType) error {
 
-	return u.driver.Driver.Model(&ChatScheme{}).Where("chat_id = ? AND word = ? AND sensetive_type = ?", chatId, sensetiveWord, sensetiveType.String()).Delete(&ChatScheme{}).Error
+	return u.driver.Driver.Model(&ChatSensetiveScheme{}).Where("chat_id = ? AND word = ? AND sensetive_type = ?", chatId, sensetiveWord, sensetiveType.String()).Delete(&ChatSensetiveScheme{}).Error
 }
 
 // GetChatSensetiveWords(chatId int64) models.ChatSensetiveWords
 func (u *ChatSensetive) GetChatSensetiveWords(chatId int64, sensetiveType sensetivetypes.SensetiveType) models.ChatSensetiveWords {
 
-	var sensetiveWords []ChatScheme
+	var sensetiveWords []ChatSensetiveScheme
 	err := u.driver.Driver.Where("chat_id = ? AND sensetive_type = ?", chatId, sensetiveType.String()).Find(&sensetiveWords).Error
 	if err != nil {
 		fmt.Printf("GetChatSensetiveWords: %v\n", err)
@@ -60,7 +61,7 @@ func (u *ChatSensetive) GetChatSensetiveWords(chatId int64, sensetiveType senset
 
 // GetAllChatSensetiveWords(sensetiveType sensetivetypes.SensetiveType) []models.ChatSensetiveWords
 func (u *ChatSensetive) GetAllChatSensetiveWords(sensetiveType sensetivetypes.SensetiveType) map[int64][]string {
-	var sensetiveWords []ChatScheme
+	var sensetiveWords []ChatSensetiveScheme
 	err := u.driver.Driver.Where("sensetive_type = ?", sensetiveType.String()).Find(&sensetiveWords).Error
 	if err != nil {
 		fmt.Printf("GetAllChatSensetiveWords: %v\n", err)
