@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	"github.com/ponyCorp/rebornPony/internal/models"
+	"github.com/ponyCorp/rebornPony/internal/models/sensetivetypes"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
 	sqllibChat "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chat"
 	sqllibKnownUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/knownUser"
 	sqllibMuteHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/muteHistory"
 
+	sqllibChatsensetive "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chatSensetive"
 	sqllibWarn "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warn"
 	sqllibWarnHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warnHistory"
 )
@@ -51,13 +53,20 @@ type Chat interface {
 	AddChildrenChat(parentChatID string, childrenChatID string) error
 	SetParentChat(parentChatID string, childrenChatID string) error
 }
+type ChatSensetive interface {
+	AddChatSensetive(chatId int64, sensetiveWord string, sensetiveType sensetivetypes.SensetiveType) error
+	RemoveChatSensetive(chatId int64, sensetiveWord string, sensetiveType sensetivetypes.SensetiveType) error
+	GetChatSensetiveWords(chatId int64, sensetiveType sensetivetypes.SensetiveType) models.ChatSensetiveWords
+	GetAllChatSensetiveWords(sensetiveType sensetivetypes.SensetiveType) map[int64][]string
+}
 type Repository struct {
-	driverType  string
-	Chat        Chat
-	Warn        Warn
-	WarnHistory WarnHistory
-	MuteHistory MuteHistory
-	KnownUser   KnownUser
+	driverType    string
+	Chat          Chat
+	Warn          Warn
+	WarnHistory   WarnHistory
+	MuteHistory   MuteHistory
+	KnownUser     KnownUser
+	ChatSensetive ChatSensetive
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
@@ -90,14 +99,18 @@ func NewRepository(driver iDb) (*Repository, error) {
 		if err != nil {
 			return &Repository{}, err
 		}
-
+		chatSensetivesCheme, err := sqllibChatsensetive.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
 		return &Repository{
-			driverType:  dr.DriverType(),
-			KnownUser:   knownUserScheme,
-			Chat:        ChatScheme,
-			Warn:        WarnScheme,
-			WarnHistory: WarnHistoryScheme,
-			MuteHistory: MuteHistoryScheme,
+			driverType:    dr.DriverType(),
+			KnownUser:     knownUserScheme,
+			Chat:          ChatScheme,
+			Warn:          WarnScheme,
+			WarnHistory:   WarnHistoryScheme,
+			MuteHistory:   MuteHistoryScheme,
+			ChatSensetive: chatSensetivesCheme,
 		}, nil
 	}
 

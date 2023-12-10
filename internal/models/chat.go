@@ -21,3 +21,7 @@ type Chat struct {
 	ChildrenChats []string
 	EventsChannel int64
 }
+type ChatSensetiveWords struct {
+	ChatID int64
+	Words  []string
+}
