@@ -105,6 +105,28 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
 	dynamicService := dynamiccommandservice.NewDynamicCommandService()
 	cmdRouter.Handle("help", "help", cmdRouter.Help)
+	cmdRouter.Handle("info", "info", func(update *tgbotapi.Update, cmd, arg string) {
+
+		u, isAdmin, err := groupManager.GetAdminInfo(update.FromChat().ID, update.SentFrom().ID)
+		if err != nil {
+			if err.Error() == "record not found" {
+				sender.Reply(update.FromChat().ID, update.Message.MessageID, "Ты не админ")
+				return
+			}
+			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+			return
+		}
+		if !isAdmin {
+			sender.Reply(update.FromChat().ID, update.Message.MessageID, "Ты не админ")
+			return
+		}
+		if u.Level == admintypes.Owner {
+			sender.Reply(update.FromChat().ID, update.Message.MessageID, "Вы - владелец чата")
+			return
+		}
+
+		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Вы администратор %d уровня", u.Level.Number()))
+	})
 	cmdRouter.HadleUndefined(func(update *tgbotapi.Update, cmd, arg string) {
 		//sender.SendMessage(update.Message.Chat.ID, "Unknown command")
 		dynamicService.Handle(update, cmd, arg)
