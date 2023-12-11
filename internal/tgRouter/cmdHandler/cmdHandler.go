@@ -2,6 +2,7 @@ package cmdhandler
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/mallvielfrass/fmc"
 	"github.com/ponyCorp/rebornPony/internal/repository"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
 )

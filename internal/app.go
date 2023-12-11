@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ponyCorp/rebornPony/config"
 	"github.com/ponyCorp/rebornPony/internal/repository"
+	adminsmanager "github.com/ponyCorp/rebornPony/internal/services/adminsManager"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	tgbot "github.com/ponyCorp/rebornPony/internal/services/tgBot"
@@ -55,8 +56,10 @@ func (app *App) Run() error {
 	}
 	sender := sender.NewSender(tgBot.Bot)
 	tgRouter := tgrouter.NewRouter(tgBot.GetBotUsername())
+	groupManager := adminsmanager.New(tgBot.Bot, rep)
+
 	switcher := eventchatswitcher.New(rep.Chat)
-	tgRouter.Mount(rep, switcher, sender, tgBot.GetBotUsername())
+	tgRouter.Mount(rep, switcher, sender, groupManager, tgBot.GetBotUsername())
 	fmt.Println("mounted")
 
 	go tgRouter.Run(&tgBot.Upd)

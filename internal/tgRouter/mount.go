@@ -45,6 +45,10 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 		cmdRouter.Route(update, cmd.Cmd, cmd.Arg)
 		return nil
 	})
+	r.Handle(eventtypes.Message, func(update *tgbotapi.Update) error {
+		fmc.Printf("#fbtMessage>#wbt%s > #gbt@%s > %s %s> #bbt[%+v]\n", update.FromChat().Title, update.Message.From.UserName, update.Message.From.FirstName, update.Message.From.LastName, update.Message.Text)
+		return nil
+	})
 	r.Middleware(eventtypes.Message, func(upd *tgbotapi.Update, event eventtypes.Event) (bool, error) {
 		fmc.Printf("#fbtMessage middleware> #bbt[%+v]\n", upd)
 		//sensetive warn
