@@ -158,7 +158,15 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 
 	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
 		fmc.Printfln("#fbtAdminOnly middleware> #bbt[%+v]", update)
-
+		uLevel, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		if err != nil {
+			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+			return false, err
+		}
+		if uLevel < admintypes.L1 {
+			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
+			return false, nil
+		}
 		return true, nil
 	})
 	adminOnlyGroup.Handle("addwarn", "addwarn", func(update *tgbotapi.Update, cmd, arg string) {
