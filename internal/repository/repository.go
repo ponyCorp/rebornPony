@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	"github.com/ponyCorp/rebornPony/internal/models"
+	"github.com/ponyCorp/rebornPony/internal/models/admintypes"
 	"github.com/ponyCorp/rebornPony/internal/models/sensetivetypes"
 	"github.com/ponyCorp/rebornPony/internal/repository/sqllib"
 	sqllibChat "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chat"
 	sqllibKnownUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/knownUser"
 	sqllibMuteHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/muteHistory"
 
+	sqllibChatAdmin "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chatAdmin"
 	sqllibChatsensetive "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chatSensetive"
 	sqllibWarn "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warn"
 	sqllibWarnHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warnHistory"
@@ -62,7 +64,9 @@ type ChatSensetive interface {
 type ChatAdmin interface {
 	//AddAdmin(chatId int64, userId int64) error
 	//RemoveAdmin(chatId int64, userId int64) error
+	SetOwner(chatId int64, userId int64) error
 	GetAdminInfo(chatId int64, userId int64) (models.Admin, bool, error)
+	SetAdminLevel(chatId int64, userId int64, level admintypes.AdminType) error
 }
 type Repository struct {
 	driverType    string
@@ -109,6 +113,10 @@ func NewRepository(driver iDb) (*Repository, error) {
 		if err != nil {
 			return &Repository{}, err
 		}
+		ChatAdminScheme, err := sqllibChatAdmin.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
 		return &Repository{
 			driverType:    dr.DriverType(),
 			KnownUser:     knownUserScheme,
@@ -117,6 +125,7 @@ func NewRepository(driver iDb) (*Repository, error) {
 			WarnHistory:   WarnHistoryScheme,
 			MuteHistory:   MuteHistoryScheme,
 			ChatSensetive: chatSensetivesCheme,
+			ChatAdmin:     ChatAdminScheme,
 		}, nil
 	}
 

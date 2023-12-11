@@ -25,7 +25,7 @@ func Init(driver *sqllib.ISql) (ChatAdmin, error) {
 // GetAdminInfo(chatId int64, userId int64) (models.Admin, bool, error)
 func (c ChatAdmin) GetAdminInfo(chatId int64, userId int64) (models.Admin, bool, error) {
 	var admin ChatAdminScheme
-	if err := c.driver.Driver.Where("chat_id = ? AND user_id = ?", chatId, userId).First(&admin).Error; err != nil {
+	if err := c.driver.Driver.Model(&ChatAdminScheme{}).Where("chat_id = ? AND user_id = ?", chatId, userId).First(&admin).Error; err != nil {
 		return models.Admin{}, false, err
 	}
 	return models.Admin{
@@ -33,4 +33,37 @@ func (c ChatAdmin) GetAdminInfo(chatId int64, userId int64) (models.Admin, bool,
 		ChatId: admin.ChatId,
 		Level:  admintypes.AdminType(admin.Level),
 	}, true, nil
+}
+
+// SetOwner(chatId int64, userId int64) error
+func (c ChatAdmin) SetOwner(chatId int64, userId int64) error {
+	//update or create where chat_id = ?
+	err := c.driver.Driver.Model(&ChatAdminScheme{}).Where("chat_id = ?", chatId).Assign(ChatAdminScheme{
+		UserId: userId,
+		Level:  admintypes.Owner.Number(),
+	}).FirstOrCreate(&ChatAdminScheme{
+		ChatId: chatId,
+		UserId: userId,
+		Level:  admintypes.Owner.Number(),
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetAdminLevel(chatId int64, userId int64, level int) error
+func (c ChatAdmin) SetAdminLevel(chatId int64, userId int64, level admintypes.AdminType) error {
+
+	err := c.driver.Driver.Model(&ChatAdminScheme{}).Where("chat_id = ? AND user_id = ?", chatId, userId).Assign(ChatAdminScheme{
+		Level: level.Number(),
+	}).FirstOrCreate(&ChatAdminScheme{
+		ChatId: chatId,
+		UserId: userId,
+		Level:  level.Number(),
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
