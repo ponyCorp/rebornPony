@@ -5,8 +5,10 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/mallvielfrass/fmc"
+	"github.com/ponyCorp/rebornPony/internal/models/admintypes"
 	"github.com/ponyCorp/rebornPony/internal/models/sensetivetypes"
 	"github.com/ponyCorp/rebornPony/internal/repository"
+	adminsmanager "github.com/ponyCorp/rebornPony/internal/services/adminsManager"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
 	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
@@ -103,7 +105,20 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 		//sender.SendMessage(update.Message.Chat.ID, "Unknown command")
 		dynamicService.Handle(update, cmd, arg)
 	})
-
+	ownerGroup := cmdRouter.NewGroup("owner")
+	ownerGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
+		fmc.Printfln("#gbtOwnerMiddleware>  #bbt[%+v]", update)
+		uLevel, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		if err != nil {
+			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+			return false, err
+		}
+		if uLevel < admintypes.Owner {
+			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
+			return false, nil
+		}
+		return true, nil
+	})
 	adminOnlyGroup := cmdRouter.NewGroup("admin")
 
 	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
