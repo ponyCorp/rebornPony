@@ -127,6 +127,15 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 
 		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Вы администратор %d уровня", u.Level.Number()))
 	})
+	cmdRouter.Handle("reloadowner", "reloadowner", func(update *tgbotapi.Update, cmd, arg string) {
+		user, err := groupManager.GetOwner(update.FromChat().ID)
+		if err != nil {
+			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+			return
+		}
+		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Владелец бота: @%s", user.UserName))
+	})
+
 	cmdRouter.HadleUndefined(func(update *tgbotapi.Update, cmd, arg string) {
 		//sender.SendMessage(update.Message.Chat.ID, "Unknown command")
 		dynamicService.Handle(update, cmd, arg)
