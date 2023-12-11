@@ -16,6 +16,7 @@ type rout struct {
 }
 type CmdHandler struct {
 	mapRouter map[string]rout
+	groups    map[string][]middlewareFunc
 	rep       *repository.Repository
 	rules     *rules
 	sender    *sender.Sender
@@ -28,11 +29,20 @@ func NewCmdHandler(rep *repository.Repository, sender *sender.Sender) *CmdHandle
 	rules.add("Пользовательские команды:")
 	return &CmdHandler{
 		mapRouter: make(map[string]rout),
+		groups:    make(map[string][]middlewareFunc),
 		rep:       rep,
 		rules:     rules,
 		sender:    sender,
 		//	cmdParser: command.NewCommandParser(botName),
 	}
+}
+
+// add group middleware
+func (h *CmdHandler) addGroupMiddleware(group string, f middlewareFunc) {
+	if h.groups[group] == nil {
+		h.groups[group] = make([]middlewareFunc, 0)
+	}
+	h.groups[group] = append(h.groups[group], f)
 }
 func (h *CmdHandler) handle(route string, description string, f handleFunc, group string) {
 
@@ -57,7 +67,25 @@ func (h *CmdHandler) HandleMany(routes []string, description string, f handleFun
 	}
 }
 func (h *CmdHandler) Route(update *tgbotapi.Update, cmd, arg string) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			fmc.Printfln("#fbtError>  #bbt[%+v]", r)
+		}
+	}()
 	if rout, ok := h.mapRouter[cmd]; ok {
+		if groupMiddlewares, ok := h.groups[rout.groupName]; ok {
+			for _, groupMiddleware := range groupMiddlewares {
+				ok, err := groupMiddleware(update, cmd, arg)
+				if err != nil {
+					fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+					return false
+				}
+				if !ok {
+					return false
+				}
+			}
+		}
+
 		rout.handleFunc(update, cmd, arg)
 		return true
 	}

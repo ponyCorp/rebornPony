@@ -19,6 +19,7 @@ func (h *CmdHandler) NewGroup(groupName string) *group {
 }
 func (g *group) AddMiddleware(f middlewareFunc) {
 	g.middlewares = append(g.middlewares, f)
+	g.h.addGroupMiddleware(g.groupName, f)
 }
 func (g *group) Handle(route string, description string, f handleFunc) {
 	g.h.handle(route, description, f, g.groupName)
