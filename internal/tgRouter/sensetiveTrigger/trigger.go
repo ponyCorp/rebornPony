@@ -86,7 +86,33 @@ func (s *SensetiveTrigger) AddWords(chatID int64, words ...string) error {
 	//	fmc.Printfln("regexp: %s", s.groups[chatID].regexp.String())
 	return err
 }
+func index(s []string, e string) int {
+	for i, v := range s {
+		if v == e {
+			return i
+		}
+	}
+	return -1
+}
 
+// DeleteWords
+func (s *SensetiveTrigger) DeleteWords(chatID int64, words ...string) error {
+	defer s.m.Unlock()
+	s.m.Lock()
+	sensWords, ok := s.groups[chatID]
+	if !ok {
+		return fmt.Errorf("group not found")
+	}
+	var newSensWords []string
+
+	for _, word := range sensWords.words {
+		if index(words, word) < 0 {
+			newSensWords = append(newSensWords, word)
+		}
+	}
+	s.groups[chatID].words = newSensWords
+	return s.recompile(chatID)
+}
 func (s *SensetiveTrigger) ChatIsSensetive(chatID int64) bool {
 	_, ok := s.groups[chatID]
 	return ok

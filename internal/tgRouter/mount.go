@@ -229,12 +229,48 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не добавлено", arg))
 			return
 		}
-		warnTrigger.AddWords(update.FromChat().ID, arg)
+		err = warnTrigger.AddWords(update.FromChat().ID, arg)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не добавлено", arg))
+			return
+		}
 		sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("слово %s добавлено", arg))
 
 	})
+	//delwarn
+	adminOnlyGroup.Handle("delwarn", "delwarn", func(update *tgbotapi.Update, cmd, arg string) {
+		fmt.Println("delwarn")
+		err := rep.ChatSensetive.RemoveChatSensetive(update.FromChat().ID, arg, sensetivetypes.Warn)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не удалено", arg))
+			return
+		}
+		err = warnTrigger.DeleteWords(update.FromChat().ID, arg)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не удалено", arg))
+			return
+		}
+		sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("слово %s удалено", arg))
+	})
 	adminOnlyGroup.Handle("addforbidden", "addforbidden", func(update *tgbotapi.Update, cmd, arg string) {
-
+	adminOnlyGroup.Handle("delforbidden", "delforbidden", func(update *tgbotapi.Update, cmd, arg string) {
+		fmt.Println("delforbidden")
+		err := rep.ChatSensetive.RemoveChatSensetive(update.FromChat().ID, arg, sensetivetypes.Forbidden)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не удалено", arg))
+			return
+		}
+		err = forbiddenTrigger.DeleteWords(update.FromChat().ID, arg)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не удалено", arg))
+			return
+		}
+		sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("слово %s удалено", arg))
 	})
 	//listwarn
 	adminOnlyGroup.Handle("listwarn", "listwarn", func(update *tgbotapi.Update, cmd, arg string) {

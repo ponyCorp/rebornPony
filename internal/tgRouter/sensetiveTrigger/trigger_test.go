@@ -2,6 +2,7 @@ package sensetivetrigger
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -299,6 +300,62 @@ func Test_regexpMatch(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("regexpMatch() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestSensetiveTrigger_DeleteWords(t *testing.T) {
+	type fields struct {
+		groups map[int64]*group
+		m      *sync.RWMutex
+	}
+	type args struct {
+		chatID int64
+		words  []string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+
+		{
+			name: "TestSensetiveTrigger_DeleteWords",
+			fields: fields{
+				groups: make(map[int64]*group),
+			},
+			args: args{
+				chatID: 1,
+				words:  []string{"toster", "toster"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := New()
+			for _, w := range tt.args.words {
+
+				err := s.AddWords(tt.args.chatID, w)
+				if err != nil {
+					t.Errorf("SensetiveTrigger.AddWords() error = %v", err)
+					return
+				}
+			}
+			if err := s.DeleteWords(tt.args.chatID, tt.args.words...); (err != nil) != tt.wantErr {
+				t.Errorf("SensetiveTrigger.DeleteWords() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			wd, err := s.GetWords(tt.args.chatID)
+			if err != nil {
+				t.Errorf("SensetiveTrigger.GetWords() error = %v", err)
+				return
+			}
+			if len(wd) != 0 {
+				t.Errorf("SensetiveTrigger.GetWords() = %v, want %v", wd, []string{})
+			}
+
 		})
 	}
 }
