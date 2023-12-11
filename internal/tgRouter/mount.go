@@ -256,6 +256,21 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 		sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("слово %s удалено", arg))
 	})
 	adminOnlyGroup.Handle("addforbidden", "addforbidden", func(update *tgbotapi.Update, cmd, arg string) {
+		fmt.Println("addforbidden")
+		err := rep.ChatSensetive.AddChatSensetive(update.FromChat().ID, arg, sensetivetypes.Forbidden)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не добавлено", arg))
+			return
+		}
+		err = forbiddenTrigger.AddWords(update.FromChat().ID, arg)
+		if err != nil {
+			fmt.Println(err)
+			sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("Произошла ошибка. слово %s не добавлено", arg))
+			return
+		}
+		sender.SendMessage(update.Message.Chat.ID, fmt.Sprintf("слово %s добавлено", arg))
+	})
 	adminOnlyGroup.Handle("delforbidden", "delforbidden", func(update *tgbotapi.Update, cmd, arg string) {
 		fmt.Println("delforbidden")
 		err := rep.ChatSensetive.RemoveChatSensetive(update.FromChat().ID, arg, sensetivetypes.Forbidden)
@@ -282,6 +297,12 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 		sender.SendMessage(update.Message.Chat.ID, msg)
 	})
 	adminOnlyGroup.Handle("listforbidden", "listforbidden", func(update *tgbotapi.Update, cmd, arg string) {
+		list := rep.ChatSensetive.GetChatSensetiveWords(update.FromChat().ID, sensetivetypes.Forbidden)
+		msg := ""
+		for _, v := range list.Words {
+			msg += v + "\n"
+		}
+		sender.SendMessage(update.Message.Chat.ID, msg)
 	})
 	adminOnlyGroup.Handle("enable", "enable", func(update *tgbotapi.Update, cmd, arg string) {
 		fmt.Println("enable")
