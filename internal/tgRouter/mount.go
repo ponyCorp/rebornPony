@@ -11,6 +11,7 @@ import (
 	adminsmanager "github.com/ponyCorp/rebornPony/internal/services/adminsManager"
 	eventchatswitcher "github.com/ponyCorp/rebornPony/internal/services/eventChatSwitcher"
 	"github.com/ponyCorp/rebornPony/internal/services/sender"
+	userservice "github.com/ponyCorp/rebornPony/internal/services/userService"
 	cmdhandler "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdHandler"
 	dynamiccommandservice "github.com/ponyCorp/rebornPony/internal/tgRouter/cmdServices/dynamicCommandService"
 	eventtypes "github.com/ponyCorp/rebornPony/internal/tgRouter/eventTypes"
@@ -32,10 +33,12 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 
 	sensForbidden := rep.ChatSensetive.GetAllChatSensetiveWords(sensetivetypes.Forbidden)
 	forbiddenTrigger := sensetivetrigger.New()
+	userService := userservice.New(rep.User)
+
 	for chat, v := range sensForbidden {
 		forbiddenTrigger.AddWords(chat, v...)
 	}
-	cmdRouter := r.cmdRouts(rep, sender, warnTrigger, forbiddenTrigger, groupManager)
+	cmdRouter := r.cmdRouts(rep, sender, warnTrigger, forbiddenTrigger, groupManager, userService)
 
 	r.Handle(eventtypes.CommandMessage, func(update *tgbotapi.Update) error {
 		isCommand, cmd := cmdParser.ParseCommand(update.Message.Text)
@@ -101,9 +104,10 @@ func (r *Router) Mount(rep *repository.Repository, switcher *eventchatswitcher.E
 
 	})
 }
-func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, warnTrigger *sensetivetrigger.SensetiveTrigger, forbiddenTrigger *sensetivetrigger.SensetiveTrigger, groupManager *adminsmanager.AdminsManager) *cmdhandler.CmdHandler {
+func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, warnTrigger *sensetivetrigger.SensetiveTrigger, forbiddenTrigger *sensetivetrigger.SensetiveTrigger, groupManager *adminsmanager.AdminsManager, userService *userservice.UserService) *cmdhandler.CmdHandler {
 	cmdRouter := cmdhandler.NewCmdHandler(rep, sender)
 	dynamicService := dynamiccommandservice.NewDynamicCommandService()
+
 	cmdRouter.Handle("help", "help", cmdRouter.Help)
 	cmdRouter.Handle("info", "info", func(update *tgbotapi.Update, cmd, arg string) {
 
@@ -143,15 +147,24 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 	ownerGroup := cmdRouter.NewGroup("owner")
 	ownerGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
 		fmc.Printfln("#gbtOwnerMiddleware>  #bbt[%+v]", update)
-		uLevel, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		user, err := userService.GetOrCreateUser(update.FromChat().ID, update.SentFrom().ID)
 		if err != nil {
 			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
 			return false, err
 		}
-		if uLevel < admintypes.Owner {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
+		if admintypes.AdminType(user.User.Role) != admintypes.Owner {
+			sender.Reply(update.FromChat().ID, update.Message.MessageID, "Ты не владелец")
 			return false, nil
 		}
+		// uLevel, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		// if err != nil {
+		// 	fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+		// 	return false, err
+		// }
+		// if uLevel < admintypes.Owner {
+		// 	sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
+		// 	return false, nil
+		// }
 		return true, nil
 	})
 	// ownerGroup.Handle("levelup", "levelup", func(update *tgbotapi.Update, cmd, arg string) {
@@ -210,12 +223,12 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 
 	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
 		fmc.Printfln("#fbtAdminOnly middleware> #bbt[%+v]", update)
-		status, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		user, err := userService.GetOrCreateUser(update.FromChat().ID, update.SentFrom().ID)
 		if err != nil {
 			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
 			return false, err
 		}
-		if status == admintypes.User {
+		if admintypes.AdminType(user.User.Role) == admintypes.User {
 			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
 			return false, nil
 		}
