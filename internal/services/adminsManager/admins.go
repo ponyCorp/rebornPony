@@ -88,7 +88,7 @@ func (a *AdminsManager) IsAdmin(chatID int64, userID int64) bool {
 	if !isExist {
 		return false
 	}
-	return admin.Level > 0
+	return admin.Role != "user"
 }
 
 // SetUserLevel(chatID int64, userID int64, level int) error

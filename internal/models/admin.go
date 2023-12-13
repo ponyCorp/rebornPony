@@ -6,4 +6,5 @@ type Admin struct {
 	UserId int64
 	ChatId int64
 	Level  admintypes.AdminType
+	Role   string
 }

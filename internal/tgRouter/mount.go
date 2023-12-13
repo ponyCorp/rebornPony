@@ -125,7 +125,7 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 			return
 		}
 
-		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Вы администратор %d уровня", u.Level.Number()))
+		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Вы администратор %d уровня", u.Level))
 	})
 	cmdRouter.Handle("reloadowner", "reloadowner", func(update *tgbotapi.Update, cmd, arg string) {
 		user, err := groupManager.GetOwner(update.FromChat().ID)
@@ -154,68 +154,68 @@ func (r *Router) cmdRouts(rep *repository.Repository, sender *sender.Sender, war
 		}
 		return true, nil
 	})
-	ownerGroup.Handle("levelup", "levelup", func(update *tgbotapi.Update, cmd, arg string) {
-		replyMsg := update.Message.ReplyToMessage
-		if replyMsg == nil {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "Укажите сообщение")
-			return
-		}
-		targetUser := replyMsg.From.ID
-		userLevel, err := groupManager.GetUserStatus(update.FromChat().ID, targetUser)
-		if err != nil {
-			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
-			return
-		}
-		if admintypes.MaxLevel() <= userLevel {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У пользователя максимальный уровень")
-			return
-		}
-		err = groupManager.SetAdminLevel(update.FromChat().ID, targetUser, userLevel.IncreaseLevel())
-		if err != nil {
-			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
-			return
-		}
-		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Пользователю %d повышен уровень привилегий", targetUser))
+	// ownerGroup.Handle("levelup", "levelup", func(update *tgbotapi.Update, cmd, arg string) {
+	// 	replyMsg := update.Message.ReplyToMessage
+	// 	if replyMsg == nil {
+	// 		sender.Reply(update.FromChat().ID, update.Message.MessageID, "Укажите сообщение")
+	// 		return
+	// 	}
+	// 	targetUser := replyMsg.From.ID
+	// 	userLevel, err := groupManager.GetUserStatus(update.FromChat().ID, targetUser)
+	// 	if err != nil {
+	// 		fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+	// 		return
+	// 	}
+	// 	if admintypes.MaxLevel() <= userLevel {
+	// 		sender.Reply(update.FromChat().ID, update.Message.MessageID, "У пользователя максимальный уровень")
+	// 		return
+	// 	}
+	// 	err = groupManager.SetAdminLevel(update.FromChat().ID, targetUser, userLevel.IncreaseLevel())
+	// 	if err != nil {
+	// 		fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+	// 		return
+	// 	}
+	// 	sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Пользователю %d повышен уровень привилегий", targetUser))
 
-	})
-	//leveldown
-	ownerGroup.Handle("leveldown", "leveldown", func(update *tgbotapi.Update, cmd, arg string) {
-		replyMsg := update.Message.ReplyToMessage
-		if replyMsg == nil {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "Укажите сообщение")
-			return
-		}
-		targetUser := replyMsg.From.ID
-		userLevel, err := groupManager.GetUserStatus(update.FromChat().ID, targetUser)
-		if err != nil {
-			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
-			return
-		}
-		if userLevel == admintypes.Owner {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "нелья понизить владельца чата")
-			return
-		}
-		if userLevel == admintypes.User {
-			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У пользователя минимальный уровень")
-			return
-		}
-		err = groupManager.SetAdminLevel(update.FromChat().ID, targetUser, userLevel.DecreaseLevel())
-		if err != nil {
-			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
-			return
-		}
-		sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Пользователю %d понижен уровень привилегий", targetUser))
-	})
+	// })
+	// //leveldown
+	// ownerGroup.Handle("leveldown", "leveldown", func(update *tgbotapi.Update, cmd, arg string) {
+	// 	replyMsg := update.Message.ReplyToMessage
+	// 	if replyMsg == nil {
+	// 		sender.Reply(update.FromChat().ID, update.Message.MessageID, "Укажите сообщение")
+	// 		return
+	// 	}
+	// 	targetUser := replyMsg.From.ID
+	// 	userLevel, err := groupManager.GetUserStatus(update.FromChat().ID, targetUser)
+	// 	if err != nil {
+	// 		fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+	// 		return
+	// 	}
+	// 	if userLevel == admintypes.Owner {
+	// 		sender.Reply(update.FromChat().ID, update.Message.MessageID, "нелья понизить владельца чата")
+	// 		return
+	// 	}
+	// 	if userLevel == admintypes.User {
+	// 		sender.Reply(update.FromChat().ID, update.Message.MessageID, "У пользователя минимальный уровень")
+	// 		return
+	// 	}
+	// 	err = groupManager.SetAdminLevel(update.FromChat().ID, targetUser, userLevel.DecreaseLevel())
+	// 	if err != nil {
+	// 		fmc.Printfln("#fbtError>  #bbt[%+v]", err)
+	// 		return
+	// 	}
+	// 	sender.Reply(update.FromChat().ID, update.Message.MessageID, fmt.Sprintf("Пользователю %d понижен уровень привилегий", targetUser))
+	// })
 	adminOnlyGroup := cmdRouter.NewGroup("admin")
 
 	adminOnlyGroup.AddMiddleware(func(update *tgbotapi.Update, cmd, arg string) (bool, error) {
 		fmc.Printfln("#fbtAdminOnly middleware> #bbt[%+v]", update)
-		uLevel, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
+		status, err := groupManager.GetUserStatus(update.FromChat().ID, update.SentFrom().ID)
 		if err != nil {
 			fmc.Printfln("#fbtError>  #bbt[%+v]", err)
 			return false, err
 		}
-		if uLevel < admintypes.L1 {
+		if status == admintypes.User {
 			sender.Reply(update.FromChat().ID, update.Message.MessageID, "У тебя недостаточный уровень привилегий")
 			return false, nil
 		}
