@@ -13,6 +13,7 @@ import (
 
 	sqllibChatAdmin "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chatAdmin"
 	sqllibChatsensetive "github.com/ponyCorp/rebornPony/internal/repository/sqllib/chatSensetive"
+	sqllibUser "github.com/ponyCorp/rebornPony/internal/repository/sqllib/user"
 	sqllibWarn "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warn"
 	sqllibWarnHistory "github.com/ponyCorp/rebornPony/internal/repository/sqllib/warnHistory"
 )
@@ -68,6 +69,13 @@ type ChatAdmin interface {
 	GetAdminInfo(chatId int64, userId int64) (models.Admin, bool, error)
 	SetAdminLevel(chatId int64, userId int64, level admintypes.AdminType) error
 }
+type User interface {
+	GetOrCreateUser(chatId int64, userId int64) (*models.User, error)
+	IncreaseReputation(chatId int64, userId int64, inc int) (int, error)
+	DecreaseReputation(chatId int64, userId int64, inc int) (int, error)
+	SetReputation(chatId int64, userId int64, reputation int) (int, error)
+	GetUserReputation(chatId int64, userId int64) (int, error)
+}
 type Repository struct {
 	driverType    string
 	Chat          Chat
@@ -77,6 +85,7 @@ type Repository struct {
 	KnownUser     KnownUser
 	ChatSensetive ChatSensetive
 	ChatAdmin     ChatAdmin
+	User          User
 }
 
 func NewRepository(driver iDb) (*Repository, error) {
@@ -117,6 +126,10 @@ func NewRepository(driver iDb) (*Repository, error) {
 		if err != nil {
 			return &Repository{}, err
 		}
+		UserScheme, err := sqllibUser.Init(dr)
+		if err != nil {
+			return &Repository{}, err
+		}
 		return &Repository{
 			driverType:    dr.DriverType(),
 			KnownUser:     knownUserScheme,
@@ -126,6 +139,7 @@ func NewRepository(driver iDb) (*Repository, error) {
 			MuteHistory:   MuteHistoryScheme,
 			ChatSensetive: chatSensetivesCheme,
 			ChatAdmin:     ChatAdminScheme,
+			User:          UserScheme,
 		}, nil
 	}
 
