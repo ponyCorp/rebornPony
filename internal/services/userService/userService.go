@@ -87,49 +87,49 @@ func (u *UserService) GetOrCreateUser(chatId int64, userId int64) (*userMutex, e
 }
 
 // IncreaseReputation(chatId int64, userId int64, inc int) error
-func (u *UserService) IncreaseReputation(chatId int64, userId int64, inc int) error {
+func (u *UserService) IncreaseReputation(chatId int64, userId int64, inc int) (int, error) {
 	user, err := u.GetOrCreateUser(chatId, userId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer user.umx.Unlock()
 	user.umx.Lock()
 	reputation, err := u.userRepo.IncreaseReputation(chatId, userId, inc)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	user.User.Reputation = reputation
-	return nil
+	return reputation, nil
 }
 
 // DecreaseReputation(chatId int64, userId int64, inc int) error
-func (u *UserService) DecreaseReputation(chatId int64, userId int64, inc int) error {
+func (u *UserService) DecreaseReputation(chatId int64, userId int64, inc int) (int, error) {
 	user, err := u.GetOrCreateUser(chatId, userId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer user.umx.Unlock()
 	user.umx.Lock()
 	reputation, err := u.userRepo.DecreaseReputation(chatId, userId, inc)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	user.User.Reputation = reputation
-	return nil
+	return reputation, nil
 }
 
 // SetReputation(chatId int64, userId int64, reputation int) error
-func (u *UserService) SetReputation(chatId int64, userId int64, rep int) error {
+func (u *UserService) SetReputation(chatId int64, userId int64, rep int) (int, error) {
 	user, err := u.GetOrCreateUser(chatId, userId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer user.umx.Unlock()
 	user.umx.Lock()
 	reputation, err := u.userRepo.SetReputation(chatId, userId, rep)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	user.User.Reputation = reputation
-	return nil
+	return reputation, nil
 }
